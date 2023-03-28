@@ -27,7 +27,6 @@ void NoisySensors::reset(mc_control::MCGlobalController & ctl)
 
 void NoisySensors::before(mc_control::MCGlobalController & ctl)
 {
-  mc_rtc::log::info("NoisySensors::before");
   const mc_rbdyn::BodySensorVector & bodySensors = ctl.get_robot_module()->bodySensors();
   const std::vector<mc_rbdyn::ForceSensor> & forceSensors = ctl.get_robot_module()->forceSensors();
 
@@ -55,7 +54,7 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
     {
       Eigen::Vector3d noisyMeasurement = bodySensor.linearAcceleration();
       std::mt19937 generator(std::random_device{}());
-      std::normal_distribution<double> dist(0.0, gyroStandardDev_);
+      std::normal_distribution<double> dist(0.0, acceleroStandardDev_);
 
       // Add Gaussian noise
       for(int i = 0; i < noisyMeasurement.size(); i++)
@@ -73,7 +72,7 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
     {
       Eigen::Vector3d noisyMeasurement = forceSensor.force();
       std::mt19937 generator(std::random_device{}());
-      std::normal_distribution<double> dist(0.0, gyroStandardDev_);
+      std::normal_distribution<double> dist(0.0, forceSenStandardDev_);
 
       // Add Gaussian noise
       for(int i = 0; i < noisyMeasurement.size(); i++)
@@ -94,7 +93,7 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
     {
       Eigen::Vector3d noisyMeasurement = forceSensor.couple();
       std::mt19937 generator(std::random_device{}());
-      std::normal_distribution<double> dist(0.0, gyroStandardDev_);
+      std::normal_distribution<double> dist(0.0, torqueSenStandardDev_);
 
       // Add Gaussian noise
       for(int i = 0; i < noisyMeasurement.size(); i++)
@@ -110,10 +109,7 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
   }
 }
 
-void NoisySensors::after(mc_control::MCGlobalController & ctl)
-{
-  mc_rtc::log::info("NoisySensors::after");
-}
+void NoisySensors::after(mc_control::MCGlobalController & ctl) {}
 
 mc_control::GlobalPlugin::GlobalPluginConfiguration NoisySensors::configuration()
 {
