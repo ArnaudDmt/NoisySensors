@@ -5,6 +5,7 @@
 #pragma once
 
 #include <mc_control/GlobalPlugin.h>
+#include <random>
 
 namespace mc_plugin
 {
@@ -24,6 +25,15 @@ struct NoisySensors : public mc_control::GlobalPlugin
   ~NoisySensors() override;
 
 private:
+  bool withGyroNoise_ = false;
+  bool withAcceleroNoise_ = false;
+  bool withForceSensorNoise_ = false;
+  bool withTorqueSensorNoise_ = false;
+
+  double gyroStandardDev_ = 0.1;
+  double acceleroStandardDev_ = 0.1;
+  double forceSenStandardDev_ = 0.1;
+  double torqueSenStandardDev_ = 0.1;
 };
 
 } // namespace mc_plugin
