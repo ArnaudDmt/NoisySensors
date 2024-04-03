@@ -12,12 +12,19 @@ void NoisySensors::init(mc_control::MCGlobalController & ctl, const mc_rtc::Conf
   mc_rtc::log::info("NoisySensors::init called with configuration:\n{}", config.dump(true, true));
   config("withGyroNoise", withGyroNoise_);
   config("gyroStandardDev", gyroStandardDev_);
+  config("gyroOffset", gyroOffset_);
+
   config("withAcceleroNoise", withAcceleroNoise_);
   config("acceleroStandardDev", acceleroStandardDev_);
+  config("AcceleroOffset", acceleroOffset_);
+
   config("withForceSensorNoise", withForceSensorNoise_);
   config("forceSenStandardDev", forceSenStandardDev_);
+  config("forceSenOffset", forceSenOffset_);
+
   config("withTorqueSensorNoise", withTorqueSensorNoise_);
   config("torqueSenStandardDev", torqueSenStandardDev_);
+  config("torqueSenOffset", torqueSenOffset_);
 }
 
 void NoisySensors::reset(mc_control::MCGlobalController & ctl)
@@ -27,22 +34,26 @@ void NoisySensors::reset(mc_control::MCGlobalController & ctl)
 
 void NoisySensors::before(mc_control::MCGlobalController & ctl)
 {
-  const mc_rbdyn::BodySensorVector & bodySensors = ctl.get_robot_module()->bodySensors();
-  const std::vector<mc_rbdyn::ForceSensor> & forceSensors = ctl.get_robot_module()->forceSensors();
-
   if(withGyroNoise_)
   {
-    for(const auto & bodySensor : bodySensors)
+    for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
     {
       Eigen::Vector3d noisyMeasurement = bodySensor.angularVelocity();
+      unbiasedGyroSignal_[bodySensor.name()] = noisyMeasurement;
+
       std::mt19937 generator(std::random_device{}());
-      std::normal_distribution<double> dist(0.0, gyroStandardDev_);
+      std::normal_distribution<double> dist_x(0.0, gyroStandardDev_.x());
+      std::normal_distribution<double> dist_y(0.0, gyroStandardDev_.y());
+      std::normal_distribution<double> dist_z(0.0, gyroStandardDev_.z());
 
       // Add Gaussian noise
-      for(int i = 0; i < noisyMeasurement.size(); i++)
-      {
-        noisyMeasurement(i) += dist(generator);
-      }
+      noisyMeasurement.x() += dist_x(generator);
+      noisyMeasurement.y() += dist_y(generator);
+      noisyMeasurement.z() += dist_z(generator);
+
+      // Add an offset
+      noisyMeasurement += gyroOffset_;
+
       std::map<std::string, Eigen::Vector3d> sensorNoise = {{bodySensor.name(), noisyMeasurement}};
       ctl.setSensorAngularVelocities(sensorNoise);
     }
@@ -50,35 +61,45 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
 
   if(withAcceleroNoise_)
   {
-    for(const auto & bodySensor : bodySensors)
+    for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
     {
       Eigen::Vector3d noisyMeasurement = bodySensor.linearAcceleration();
       std::mt19937 generator(std::random_device{}());
-      std::normal_distribution<double> dist(0.0, acceleroStandardDev_);
+      std::normal_distribution<double> dist_x(0.0, acceleroStandardDev_.x());
+      std::normal_distribution<double> dist_y(0.0, acceleroStandardDev_.y());
+      std::normal_distribution<double> dist_z(0.0, acceleroStandardDev_.z());
 
       // Add Gaussian noise
-      for(int i = 0; i < noisyMeasurement.size(); i++)
-      {
-        noisyMeasurement(i) += dist(generator);
-      }
+      noisyMeasurement.x() += dist_x(generator);
+      noisyMeasurement.y() += dist_y(generator);
+      noisyMeasurement.z() += dist_z(generator);
+
+      // Add an offset
+      noisyMeasurement += acceleroOffset_;
+
       std::map<std::string, Eigen::Vector3d> sensorNoise = {{bodySensor.name(), noisyMeasurement}};
-      ctl.setSensorAccelerations(sensorNoise);
+      ctl.setSensorLinearAccelerations(sensorNoise);
     }
   }
 
   if(withForceSensorNoise_)
   {
-    for(const auto & forceSensor : forceSensors)
+    for(const auto & forceSensor : ctl.controller().robot().data()->forceSensors)
     {
       Eigen::Vector3d noisyMeasurement = forceSensor.force();
       std::mt19937 generator(std::random_device{}());
-      std::normal_distribution<double> dist(0.0, forceSenStandardDev_);
+      std::normal_distribution<double> dist_x(0.0, forceSenStandardDev_.x());
+      std::normal_distribution<double> dist_y(0.0, forceSenStandardDev_.y());
+      std::normal_distribution<double> dist_z(0.0, forceSenStandardDev_.z());
 
       // Add Gaussian noise
-      for(int i = 0; i < noisyMeasurement.size(); i++)
-      {
-        noisyMeasurement(i) += dist(generator);
-      }
+      noisyMeasurement.x() += dist_x(generator);
+      noisyMeasurement.y() += dist_y(generator);
+      noisyMeasurement.z() += dist_z(generator);
+
+      // Add an offset
+      noisyMeasurement += forceSenOffset_;
+
       sva::ForceVecd noisyForce = sva::ForceVecd::Zero();
       noisyForce.force() = noisyMeasurement;
 
@@ -89,17 +110,22 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
 
   if(withTorqueSensorNoise_)
   {
-    for(const auto & forceSensor : forceSensors)
+    for(const auto & forceSensor : ctl.controller().robot().data()->forceSensors)
     {
       Eigen::Vector3d noisyMeasurement = forceSensor.couple();
       std::mt19937 generator(std::random_device{}());
-      std::normal_distribution<double> dist(0.0, torqueSenStandardDev_);
+      std::normal_distribution<double> dist_x(0.0, torqueSenStandardDev_.x());
+      std::normal_distribution<double> dist_y(0.0, torqueSenStandardDev_.y());
+      std::normal_distribution<double> dist_z(0.0, torqueSenStandardDev_.z());
 
       // Add Gaussian noise
-      for(int i = 0; i < noisyMeasurement.size(); i++)
-      {
-        noisyMeasurement(i) += dist(generator);
-      }
+      noisyMeasurement.x() += dist_x(generator);
+      noisyMeasurement.y() += dist_y(generator);
+      noisyMeasurement.z() += dist_z(generator);
+
+      // Add an offset
+      noisyMeasurement += torqueSenOffset_;
+
       sva::ForceVecd noisyTorque = sva::ForceVecd::Zero();
       noisyTorque.moment() = noisyMeasurement;
 
@@ -107,9 +133,31 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
       ctl.setWrenches(sensorNoise);
     }
   }
+
+  if(!logsAdded_ && withGyroNoise_)
+  {
+    auto & logger = ctl.controller().logger();
+    for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
+    {
+      logger.addLogEntry("NoisySensors_gyro_" + bodySensor.name() + "_biased",
+                         [&bodySensor]() { return bodySensor.angularVelocity(); });
+      logger.addLogEntry("NoisySensors_gyro_" + bodySensor.name() + "_unBiased",
+                         [this, &bodySensor]() { return unbiasedGyroSignal_.at(bodySensor.name()); });
+    }
+
+    logsAdded_ = true;
+  }
 }
 
-void NoisySensors::after(mc_control::MCGlobalController & ctl) {}
+void NoisySensors::after(mc_control::MCGlobalController & ctl)
+{
+  // std::cout << ctl.controller().robot("hrp5_p").bodySensor("Accelerometer").angularVelocity() << std::endl;
+
+  for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
+  {
+    // std::cout << bodySensor.angularVelocity() << std::endl;
+  }
+}
 
 mc_control::GlobalPlugin::GlobalPluginConfiguration NoisySensors::configuration()
 {

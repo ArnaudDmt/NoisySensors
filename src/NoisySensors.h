@@ -26,14 +26,23 @@ struct NoisySensors : public mc_control::GlobalPlugin
 
 private:
   bool withGyroNoise_ = false;
-  bool withAcceleroNoise_ = false;
-  bool withForceSensorNoise_ = false;
-  bool withTorqueSensorNoise_ = false;
+  Eigen::Vector3d gyroStandardDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d gyroOffset_ = Eigen::Vector3d::Zero();
 
-  double gyroStandardDev_ = 0.1;
-  double acceleroStandardDev_ = 0.1;
-  double forceSenStandardDev_ = 0.1;
-  double torqueSenStandardDev_ = 0.1;
+  bool withAcceleroNoise_ = false;
+  Eigen::Vector3d acceleroStandardDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d acceleroOffset_ = Eigen::Vector3d::Zero();
+
+  bool withForceSensorNoise_ = false;
+  Eigen::Vector3d forceSenStandardDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d forceSenOffset_ = Eigen::Vector3d::Zero();
+
+  bool withTorqueSensorNoise_ = false;
+  Eigen::Vector3d torqueSenStandardDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d torqueSenOffset_ = Eigen::Vector3d::Zero();
+
+  std::unordered_map<std::string, Eigen::Vector3d> unbiasedGyroSignal_;
+  bool logsAdded_ = false;
 };
 
 } // namespace mc_plugin
