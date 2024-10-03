@@ -25,20 +25,24 @@ struct NoisySensors : public mc_control::GlobalPlugin
   ~NoisySensors() override;
 
 private:
-  bool withGyroNoise_ = false;
-  Eigen::Vector3d gyroStandardDev_ = Eigen::Vector3d::Zero();
+  bool withGyroBias_ = false;
+  Eigen::Vector3d gyroNoise_StdDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d gyroRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d gyroOffset_ = Eigen::Vector3d::Zero();
 
   bool withAcceleroNoise_ = false;
-  Eigen::Vector3d acceleroStandardDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d acceleroNoise_StdDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d acceleroRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d acceleroOffset_ = Eigen::Vector3d::Zero();
 
   bool withForceSensorNoise_ = false;
-  Eigen::Vector3d forceSenStandardDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d forceSenNoise_StdDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d forceSenRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d forceSenOffset_ = Eigen::Vector3d::Zero();
 
   bool withTorqueSensorNoise_ = false;
-  Eigen::Vector3d torqueSenStandardDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d torqueSenNoise_StdDev_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d torqueSenRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d torqueSenOffset_ = Eigen::Vector3d::Zero();
 
   std::unordered_map<std::string, Eigen::Vector3d> unbiasedGyroSignal_;
