@@ -10,7 +10,7 @@ NoisySensors::~NoisySensors() = default;
 void NoisySensors::init(mc_control::MCGlobalController & ctl, const mc_rtc::Configuration & config)
 {
   mc_rtc::log::info("NoisySensors::init called with configuration:\n{}", config.dump(true, true));
-  config("withGyroBias", withNoisyGyro_);
+  config("withNoisyGyro", withNoisyGyro_);
   config("gyroNoise_StdDev", gyroNoise_StdDev_);
   config("gyroRandomWalk_StdDev", gyroRandomWalk_StdDev_);
   config("gyroOffset", gyroOffset_);
