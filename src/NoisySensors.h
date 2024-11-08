@@ -25,7 +25,7 @@ struct NoisySensors : public mc_control::GlobalPlugin
   ~NoisySensors() override;
 
 private:
-  bool withGyroBias_ = false;
+  bool withNoisyGyro_ = false;
   Eigen::Vector3d gyroNoise_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d gyroRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d gyroOffset_ = Eigen::Vector3d::Zero();

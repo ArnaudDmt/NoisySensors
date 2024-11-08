@@ -10,7 +10,7 @@ NoisySensors::~NoisySensors() = default;
 void NoisySensors::init(mc_control::MCGlobalController & ctl, const mc_rtc::Configuration & config)
 {
   mc_rtc::log::info("NoisySensors::init called with configuration:\n{}", config.dump(true, true));
-  config("withGyroBias", withGyroBias_);
+  config("withGyroBias", withNoisyGyro_);
   config("gyroNoise_StdDev", gyroNoise_StdDev_);
   config("gyroRandomWalk_StdDev", gyroRandomWalk_StdDev_);
   config("gyroOffset", gyroOffset_);
@@ -38,7 +38,7 @@ void NoisySensors::reset(mc_control::MCGlobalController & ctl)
 
 void NoisySensors::before(mc_control::MCGlobalController & ctl)
 {
-  if(withGyroBias_)
+  if(withNoisyGyro_)
   {
     for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
     {
@@ -178,7 +178,7 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
     }
   }
 
-  if(!logsAdded_ && withGyroBias_)
+  if(!logsAdded_ && withNoisyGyro_)
   {
     auto & logger = ctl.controller().logger();
     for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
