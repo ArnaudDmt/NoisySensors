@@ -14,21 +14,25 @@ void NoisySensors::init(mc_control::MCGlobalController & ctl, const mc_rtc::Conf
   config("gyroNoise_StdDev", gyroNoise_StdDev_);
   config("gyroRandomWalk_StdDev", gyroRandomWalk_StdDev_);
   config("gyroOffset", gyroOffset_);
+  config("gyroSlope", gyroSlope_);
 
   config("withAcceleroNoise", withAcceleroNoise_);
   config("acceleroNoise_StdDev", acceleroNoise_StdDev_);
   config("acceleroRandomWalk_StdDev", acceleroRandomWalk_StdDev_);
   config("AcceleroOffset", acceleroOffset_);
+  config("acceleroSlope", acceleroSlope_);
 
   config("withForceSensorNoise", withForceSensorNoise_);
   config("forceSenNoise_StdDev", forceSenNoise_StdDev_);
   config("forceSenRandomWalk_StdDev", forceSenRandomWalk_StdDev_);
   config("forceSenOffset", forceSenOffset_);
+  config("forceSenSlope", forceSenSlope_);
 
   config("withTorqueSensorNoise", withTorqueSensorNoise_);
   config("torqueSenNoise_StdDev", torqueSenNoise_StdDev_);
   config("torqueSenRandomWalk_StdDev", torqueSenRandomWalk_StdDev_);
   config("torqueSenOffset", torqueSenOffset_);
+  config("torqueSenSlope", torqueSenSlope_);
 }
 
 void NoisySensors::reset(mc_control::MCGlobalController & ctl)
@@ -65,6 +69,11 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
       gyroOffset_.y() += random_walk_y(generator);
       gyroOffset_.z() += random_walk_z(generator);
 
+      // Add a constant drift
+      gyroOffset_.x() += gyroSlope_.x();
+      gyroOffset_.y() += gyroSlope_.y();
+      gyroOffset_.z() += gyroSlope_.z();
+
       // Add an offset
       noisyMeasurement += gyroOffset_;
 
@@ -98,6 +107,11 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
       acceleroOffset_.y() += random_walk_y(generator);
       acceleroOffset_.z() += random_walk_z(generator);
 
+      // Add a constant drift
+      acceleroOffset_.x() += acceleroSlope_.x();
+      acceleroOffset_.y() += acceleroSlope_.y();
+      acceleroOffset_.z() += acceleroSlope_.z();
+
       // Add an offset
       noisyMeasurement += acceleroOffset_;
 
@@ -130,6 +144,11 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
       forceSenOffset_.x() += random_walk_x(generator);
       forceSenOffset_.y() += random_walk_y(generator);
       forceSenOffset_.z() += random_walk_z(generator);
+
+      // Add a constant drift
+      forceSenOffset_.x() += forceSenSlope_.x();
+      forceSenOffset_.y() += forceSenSlope_.y();
+      forceSenOffset_.z() += forceSenSlope_.z();
 
       // Add an offset
       noisyMeasurement += forceSenOffset_;
@@ -166,6 +185,11 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
       torqueSenOffset_.x() += random_walk_x(generator);
       torqueSenOffset_.y() += random_walk_y(generator);
       torqueSenOffset_.z() += random_walk_z(generator);
+
+      // Add a constant drift
+      torqueSenOffset_.x() += torqueSenSlope_.x();
+      torqueSenOffset_.y() += torqueSenSlope_.y();
+      torqueSenOffset_.z() += torqueSenSlope_.z();
 
       // Add an offset
       noisyMeasurement += torqueSenOffset_;
