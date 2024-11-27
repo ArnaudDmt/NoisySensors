@@ -30,24 +30,28 @@ private:
   Eigen::Vector3d gyroRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d gyroOffset_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d gyroSlope_ = Eigen::Vector3d::Zero();
+  std::vector<std::string> modifiesBodies_gyro_;
 
   bool withAcceleroNoise_ = false;
   Eigen::Vector3d acceleroNoise_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d acceleroRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d acceleroOffset_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d acceleroSlope_ = Eigen::Vector3d::Zero();
+  std::vector<std::string> modifiesBodies_accelero_;
 
   bool withForceSensorNoise_ = false;
   Eigen::Vector3d forceSenNoise_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d forceSenRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d forceSenOffset_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d forceSenSlope_ = Eigen::Vector3d::Zero();
+  std::vector<std::string> modifiesBodies_forceSen_;
 
   bool withTorqueSensorNoise_ = false;
   Eigen::Vector3d torqueSenNoise_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d torqueSenRandomWalk_StdDev_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d torqueSenOffset_ = Eigen::Vector3d::Zero();
   Eigen::Vector3d torqueSenSlope_ = Eigen::Vector3d::Zero();
+  std::vector<std::string> modifiesBodies_torqueSen_;
 
   std::unordered_map<std::string, Eigen::Vector3d> unbiasedGyroSignal_;
   bool logsAdded_ = false;

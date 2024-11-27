@@ -42,11 +42,22 @@ void NoisySensors::reset(mc_control::MCGlobalController & ctl)
 
 void NoisySensors::before(mc_control::MCGlobalController & ctl)
 {
+  modifiesBodies_gyro_.clear();
+  modifiesBodies_accelero_.clear();
+  modifiesBodies_forceSen_.clear();
+  modifiesBodies_torqueSen_.clear();
+
   if(withNoisyGyro_)
   {
     for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
     {
+      if(std::find(modifiesBodies_gyro_.begin(), modifiesBodies_gyro_.end(), bodySensor.parentBody())
+         != modifiesBodies_gyro_.end())
+      {
+        continue;
+      }
       Eigen::Vector3d noisyMeasurement = bodySensor.angularVelocity();
+
       unbiasedGyroSignal_[bodySensor.name()] = noisyMeasurement;
 
       std::mt19937 generator(std::random_device{}());
@@ -79,6 +90,8 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
 
       std::map<std::string, Eigen::Vector3d> sensorNoise = {{bodySensor.name(), noisyMeasurement}};
       ctl.setSensorAngularVelocities(sensorNoise);
+
+      modifiesBodies_gyro_.push_back(bodySensor.parentBody());
     }
   }
 
@@ -86,6 +99,11 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
   {
     for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
     {
+      if(std::find(modifiesBodies_accelero_.begin(), modifiesBodies_accelero_.end(), bodySensor.parentBody())
+         != modifiesBodies_accelero_.end())
+      {
+        continue;
+      }
       Eigen::Vector3d noisyMeasurement = bodySensor.linearAcceleration();
       std::mt19937 generator(std::random_device{}());
       std::normal_distribution<double> noise_x(0.0, acceleroNoise_StdDev_.x());
@@ -117,6 +135,8 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
 
       std::map<std::string, Eigen::Vector3d> sensorNoise = {{bodySensor.name(), noisyMeasurement}};
       ctl.setSensorLinearAccelerations(sensorNoise);
+
+      modifiesBodies_accelero_.push_back(bodySensor.parentBody());
     }
   }
 
@@ -124,6 +144,12 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
   {
     for(const auto & forceSensor : ctl.controller().robot().data()->forceSensors)
     {
+      if(std::find(modifiesBodies_forceSen_.begin(), modifiesBodies_forceSen_.end(), forceSensor.parentBody())
+         != modifiesBodies_forceSen_.end())
+      {
+        continue;
+      }
+
       Eigen::Vector3d noisyMeasurement = forceSensor.force();
       std::mt19937 generator(std::random_device{}());
       std::normal_distribution<double> noise_x(0.0, forceSenNoise_StdDev_.x());
@@ -158,6 +184,8 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
 
       std::map<std::string, sva::ForceVecd> sensorNoise = {{forceSensor.name(), noisyForce}};
       ctl.setWrenches(sensorNoise);
+
+      modifiesBodies_forceSen_.push_back(forceSensor.parentBody());
     }
   }
 
@@ -165,6 +193,12 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
   {
     for(const auto & forceSensor : ctl.controller().robot().data()->forceSensors)
     {
+      if(std::find(modifiesBodies_torqueSen_.begin(), modifiesBodies_torqueSen_.end(), forceSensor.parentBody())
+         != modifiesBodies_torqueSen_.end())
+      {
+        continue;
+      }
+
       Eigen::Vector3d noisyMeasurement = forceSensor.couple();
       std::mt19937 generator(std::random_device{}());
       std::normal_distribution<double> noise_x(0.0, torqueSenNoise_StdDev_.x());
@@ -199,6 +233,8 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
 
       std::map<std::string, sva::ForceVecd> sensorNoise = {{forceSensor.name(), noisyTorque}};
       ctl.setWrenches(sensorNoise);
+
+      modifiesBodies_torqueSen_.push_back(forceSensor.parentBody());
     }
   }
 
@@ -207,13 +243,16 @@ void NoisySensors::before(mc_control::MCGlobalController & ctl)
     auto & logger = ctl.controller().logger();
     for(const auto & bodySensor : ctl.controller().robot().data()->bodySensors)
     {
-      logger.addLogEntry("NoisySensors_gyro_" + bodySensor.name() + "_biased",
-                         [&bodySensor]() { return bodySensor.angularVelocity(); });
-      logger.addLogEntry("NoisySensors_gyro_" + bodySensor.name() + "_unBiased",
-                         [this, &bodySensor]() { return unbiasedGyroSignal_.at(bodySensor.name()); });
-      logger.addLogEntry("NoisySensors_gyro_" + bodySensor.name() + "_bias",
-                         [this, &bodySensor]() -> Eigen::Vector3d
-                         { return bodySensor.angularVelocity() - unbiasedGyroSignal_.at(bodySensor.name()); });
+      if(unbiasedGyroSignal_.find(bodySensor.name()) != unbiasedGyroSignal_.end())
+      {
+        logger.addLogEntry("NoisySensors_gyro_" + bodySensor.name() + "_biased",
+                           [&bodySensor]() { return bodySensor.angularVelocity(); });
+        logger.addLogEntry("NoisySensors_gyro_" + bodySensor.name() + "_unBiased",
+                           [this, &bodySensor]() { return unbiasedGyroSignal_.at(bodySensor.name()); });
+        logger.addLogEntry("NoisySensors_gyro_" + bodySensor.name() + "_bias",
+                           [this, &bodySensor]() -> Eigen::Vector3d
+                           { return bodySensor.angularVelocity() - unbiasedGyroSignal_.at(bodySensor.name()); });
+      }
     }
 
     logsAdded_ = true;
